@@ -3,5 +3,5 @@
 # Change the soil-plant-atmosphere parameters in the file "Input.inp". Keep file formatting.
 # 'Results.out' is an example of the model output. If you download it, the program will overwrite the file after running.
 # Share the software with your partners!
-# A web version of the program is available at: https://infoleon.github.io/test/
+# A web version of the program is available at: https://marinalamelo.github.io/flux_based_PAW/
 # Please test and suggest improvements.
