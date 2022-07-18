@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+p {   font-size: 2.5vh; ;}
+p { font-family: "Times New Roman", Times, serif; }
+
+.p2 {  font-size: 3.0vh ;}
+
+body {
+  background-color: #101010;
+  color: #ffffff;
+}
+h1 {
+  color: #ffffff;
+}
+
+a{style=color: powderblue;
+                text-shadow: 0px 0px 2px #1040FF,
+                -2px -2px 2px #1040FF,
+                 2px -2px 2px #1040FF,
+                -2px 2px 2px #1040FF,
+                 2px 2px 2px #1040FF;
+}
+
+
+a.visited{ style=color: powderblue;
+                text-shadow: 0px 0px 2px #1040FF,
+                -2px -2px 2px #1040FF,
+                 2px -2px 2px #1040FF,
+                -2px 2px 2px #1040FF,
+                 2px 2px 2px #1040FF;
+}
+
+
+</style>
+<body>
+
+<h2>Plant available water predicted by a dynamic flux-based approach</h2>
+
+<p> <i> &alpha; </i> : <input style="font-size: 2.5vh; width : 25vw;" type="number" id="al" value="2.0" >  [m<sup>-1</sup>] </p>
+<p> <i> n </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="n" value="1.41"  >  </p>
+<p> <i> l </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="lamb" value="0.5"  >  </p>
+<p> <i> Ks </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="Ks" value="0.11"  >  [m . d<sup>-1</sup>]  </p>
+<p> <i> Z<sub>soil</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="dep" value="0.5"  > [m] </font> </p>
+<p> <i> q<sub>FC</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="q" value="1.0"  >  [mm . d<sup>-1</sup>]  </p>
+
+<p> <i> &theta;<sub>s</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="ths" value="0.45"  >  [m<sup>3</sup> . m<sup>-3</sup>]  </p>
+<p> <i> &theta;<sub>r</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="thr" value="0.067"  >  [m<sup>3</sup> . m<sup>-3</sup>]  </p>
+
+<p> <i> W<sub>factor</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="wfactor" value="0.01"  >  [m<sup>3</sup> . m<sup>-3</sup>]  </p>
+<p> <i> RLD </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="rld" value="0.5"  >  [cm . cm<sup>-3</sup>]  </p>
+<p> <i> h<sub>lim</sub> </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="href" value="200.0"  >  [m]  </p>
+<p> <i> Tp </i> : <input style="font-size: 2.5vh; width : 30vw;" type="number" id="tp" value="4.0"  >  [mm . d<sup>-1</sup>]  </p>
+
+<br><br>
+<button style="font-size: 3.0vh;" onclick="myFunction()">Flux-based calculation</button>
+
+<p class="p2"  id="raw"></p>
+<p class="p2"  id="taw"></p>
+<p class="p2"  id="thlp"></p>
+<p class="p2"  id="thwp"></p>
+<p class="p2"  id="thFC"></p>
+
+
+<p style="font-size:1.8vh;" > Related to scientific article: <a style="color:powderblue; font-size:1.8vh;" href="https://www.google.com"> ??? </a> </p>
+
+<script>
+
+var al ;
+var n ;
+var lamb ;
+var Ks   ;
+var dep ;
+var q    ;
+var poly ;
+var poly_d;
+
+var th ;
+var VGl = lamb;
+var VGn = n ;
+var VGa = al;
+var dTH ;
+
+var a = new Array(3);
+var b = new Array(4);
+var i = 1;
+
+var con = 0;
+
+var THref ;
+var href ;
+var mfp0;
+var mfp1;
+var mfp2;
+var dMdTH;
+var dTH;
+var ThFC;
+var qfc = q;
+var zsoil = dep;
+var ThR ;
+var ThS;
+var Ml ;
+var Mw ;
+var Tp ;
+var Wfactor ;
+var rld ;
+var hl ;
+var hw ;
+var ThL;
+var ThW;
+
+var raw;
+var taw;
+
+var al2;
+var Ks2;
+var dep2;
+
+
+
+// VGm und phi FUNCTIONS --------------------------------------------------------------------------
+function VGm(VGn){
+  return 1-1/VGn;
+}
+function phi(VGl, VGn){
+  return VGm(VGn) * (VGl + 1);
+}
+// END ---------------------------------------------
+
+// lambda function --------------------------------------------------------------------------
+function FnL(th, VGl, VGn){  // função Lambda ou FnL
+  i = 1;
+  con = 0;
+  do{
+    con = i-1;
+    a[con] = i/VGm(VGn) + VGl + 1
+    i++;
+  }while(i <= 3);
+
+  i = 1;
+  con = 0;
+  do{
+    con = i-1;
+    b[con] = (i + phi(VGl, VGn)) * (i + 1 + VGm(VGn)) / (i + 2) / (i + 1 + phi(VGl, VGn));
+    b[con + 2] = (i + phi(VGl, VGn)) * (i + 1 - VGm(VGn)) / (i + 2) / (i + 1 + phi(VGl, VGn));
+    i++;
+  }while(i <= 2);
+
+  temp = 2*VGm(VGn)*(   Math.pow(th, a[0])    ) + ((1+VGm(VGn))*b[0]-(1-VGm(VGn))*b[2])*(  Math.pow(th, a[1])   ) +
+  ((1+VGm(VGn))*b[0]*b[1]-(1-VGm(VGn)) * b[2] * b[3]) * (   Math.pow(th,a[2])  );
+  return temp;
+}
+// END ---------------------------------------------
+
+// MatInv function --------------------------------------------------------------------------
+function MatInv(mfp0, VGa, VGn, VGl, Ks, href){  // funcao inversa
+  THref = Math.pow( (1 + Math.pow((VGa*href),VGn) ) , (-VGm(VGn)) );
+  crit = 1e-6;
+  dTH = 0.00001;
+  mfp1 = 1.e8;
+  //First estimate of th
+  th = 0.5;
+
+  while(Math.abs((mfp1-mfp0)/mfp0) > crit){
+    mfp1 = VGm(VGn)*(1-VGm(VGn))*Ks/2/VGa/(phi(VGl, VGn)+1) * (FnL(th, VGl, VGn) -
+    FnL(THref, VGl, VGn) ) ;
+    mfp2 = VGm(VGn)*(1-VGm(VGn))*Ks/2/VGa/(phi(VGl, VGn)+1) * (FnL(th+dTH, VGl, VGn) -
+    FnL(THref, VGl, VGn) ) ;
+
+    dMdTH = (mfp2-mfp1) / dTH ;
+    th = th - (mfp1-mfp0) / dMdTH ;
+  }
+
+  h = Math.pow( (( Math.pow(th , (-1/VGm(VGn))) )-1)  ,  (1/VGn) )  /  VGa ;
+  return h;
+}
+// END ---------------------------------------------
+
+// Poly function --------------------------------------------------------------------------
+function func_poly(al, n, lamb, Ks, dep, q) {
+
+poly_d = 0.8654654556811963 * 1
+- 0.05434726070081017 * Math.log10(al)   +
+0.08037116529839043 * Math.log10(al) * Math.log10(al)   +
+0.008762800602361308 * Math.log10(al) * Math.log10(al) * Math.log10(al)
+- 0.04666291216858057 * Math.log10(al) * Math.log10(al) * (1/n)   +
+0.2622780247098996 * Math.log10(al) * (1/n) * (1/n)
+- 0.09413191609868982 * Math.log10(al) * (1/n) * Math.log10(Ks)   +
+0.06132681005269242 * Math.log10(al) * (1/n) * Math.log10(q)
+- 0.13323206575737548 * Math.log10(al) * (1/n) * Math.log10(dep)
+- 0.021039571391720215 * Math.log10(al) * (1/n) * lamb   +
+0.012148066143768961 * Math.log10(al) * Math.log10(Ks) * Math.log10(Ks)
+- 0.02987773097651346 * Math.log10(al) * Math.log10(Ks) * Math.log10(q)   +
+0.022671446739094357 * Math.log10(al) * Math.log10(Ks) * Math.log10(dep)   +
+0.03335805429295968 * Math.log10(al) * Math.log10(dep) * Math.log10(dep)   +
+0.020147726195870116 * Math.log10(al) * lamb   +
+1.6279897446766827 * (1/n) * (1/n)
+- 1.4530569552105415 * (1/n) * (1/n) * (1/n)   +
+0.7043355004062589 * (1/n) * (1/n) * Math.log10(Ks)
+- 0.541784083894665 * (1/n) * (1/n) * Math.log10(q)   +
+0.5902799985238507 * (1/n) * (1/n) * Math.log10(dep)   +
+0.09038263602784666 * (1/n) * (1/n) * lamb
+- 0.24899715554877372 * (1/n) * Math.log10(Ks)
+- 0.10399563657752278 * (1/n) * Math.log10(Ks) * Math.log10(Ks)   +
+0.21908354200635233 * (1/n) * Math.log10(Ks) * Math.log10(q)
+- 0.1434519462819891 * (1/n) * Math.log10(Ks) * Math.log10(dep)
+- 0.030160399742816372 * (1/n) * Math.log10(Ks) * lamb
+- 0.042722279074579816 * (1/n) * Math.log10(q) * Math.log10(q)   +
+0.12831152068623008 * (1/n) * Math.log10(q) * Math.log10(dep)   +
+0.027436721757170452 * (1/n) * Math.log10(q) * lamb
+- 0.1565433350511172 * (1/n) * Math.log10(dep) * Math.log10(dep)
+- 0.03806968196564138 * (1/n) * Math.log10(dep) * lamb
+- 0.19466015404836676 * (1/n) * lamb   +
+0.008474142129239706 * (1/n) * lamb * lamb
+- 0.2914427928534872 * Math.log10(Ks)   +
+0.05235636114710501 * Math.log10(Ks) * Math.log10(Ks)
+- 0.018086620387045928 * Math.log10(Ks) * Math.log10(Ks) * Math.log10(q)   +
+0.026784035410313163 * Math.log10(Ks) * Math.log10(Ks) * Math.log10(dep)
+- 0.07537441951881563 * Math.log10(Ks) * Math.log10(q)   +
+0.028860757171912103 * Math.log10(Ks) * Math.log10(q) * Math.log10(q)
+- 0.06277529823160982 * Math.log10(Ks) * Math.log10(q) * Math.log10(dep)   +
+0.003890244066777326 * Math.log10(Ks) * Math.log10(q) * lamb   +
+0.02100705109908848 * Math.log10(Ks) * Math.log10(dep) * Math.log10(dep)   +
+0.030434602257902094 * Math.log10(Ks) * lamb   +
+0.35107292818654534 * Math.log10(q)
+- 0.03178639761011755 * Math.log10(q) * lamb
+- 0.6251196942516541 * Math.log10(dep)   +
+0.1907936111626416 * Math.log10(dep) * Math.log10(dep)   +
+0.03710196881236187 * Math.log10(dep) * lamb   +
+0.09655013764417436 * lamb
+- 0.0074343753768419465 * lamb * lamb ;
+
+  if (poly_d >= 0.999){
+    poly_d = 0.999;
+  }
+  if (poly_d <= 0.001){
+    poly_d = 0.001;
+  }
+return poly_d;
+}
+
+// END ---------------------------------------------
+
+
+
+function myFunction() {
+
+al   = parseFloat(document.getElementById("al").value);
+n    = parseFloat(document.getElementById("n").value);
+lamb = parseFloat(document.getElementById("lamb").value);
+Ks   = parseFloat(document.getElementById("Ks").value);
+dep  = parseFloat(document.getElementById("dep").value);
+q    = parseFloat(document.getElementById("q").value);
+
+ThS  = parseFloat(document.getElementById("ths").value);
+ThR  = parseFloat(document.getElementById("thr").value);
+
+Wfactor = parseFloat(document.getElementById("wfactor").value);
+rld  = parseFloat(document.getElementById("rld").value);
+href = parseFloat(document.getElementById("href").value);
+Tp = parseFloat(document.getElementById("tp").value);
+
+VGa = al;
+VGl = lamb;
+VGn = n;
+qfc = q;
+zsoil = dep;
+
+
+al2 = al/100;
+Ks2 = Ks * 100;
+dep2 = dep * 100;
+ThFC = func_poly(al2, n,  lamb, Ks2, dep2, q);
+ThFC = ThFC;
+
+hfc =  Math.pow( (   Math.pow(  ThFC  ,  (VGn/(1-VGn))   ) - 1),(1/VGn) ) / VGa;
+ThFC = ThR + ( ThS - ThR) * ThFC;
+
+Ml = 1.69 * (Tp / 1000.0) / zsoil / (rld * 1.0e4)  ;
+Mw = Ml * Wfactor ;
+
+//           mfp0, VGa, VGn, VGl, Ks, href
+
+hl = MatInv(Ml, VGa, VGn, VGl, Ks, href);
+hw = MatInv(Mw, VGa, VGn, VGl, Ks, href);
+
+
+ThL = ThR + (ThS-ThR) * Math.pow((1+ Math.pow((VGa*hl),VGn)) , ((1-VGn) / VGn));
+ThW = ThR + (ThS-ThR) * Math.pow((1+ Math.pow((VGa*hw),VGn)) , ((1-VGn) / VGn));
+
+if (ThL >= ThFC){
+  ThL = ThFC
+  hl = hfc
+}
+
+raw = parseFloat(ThFC) - parseFloat(ThL);
+taw = parseFloat(ThFC) - parseFloat(ThW);
+
+
+document.getElementById("raw").innerHTML = "RAW: " + raw.toFixed(5);
+document.getElementById("taw").innerHTML = "TAW: " + taw.toFixed(5);
+document.getElementById("thlp").innerHTML = "&theta;<sub>LP</sub>: " + ThL.toFixed(5);
+document.getElementById("thwp").innerHTML = "&theta;<sub>WP</sub>: " + ThW.toFixed(5);
+document.getElementById("thFC").innerHTML = "&theta;<sub>FC</sub>: " + ThFC.toFixed(5);
+
+
+}
+
+</script>
+
+
+</body>
+</html>
