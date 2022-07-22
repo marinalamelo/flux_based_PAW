@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -59,11 +58,12 @@ a.visited{ style=color: powderblue;
 <button style="font-size: 3.0vh;" onclick="myFunction()">Flux-based calculation</button>
 
 <p class="p2"  id="raw"></p>
+<p class="p2"  id="CAFD"></p>
 <p class="p2"  id="taw"></p>
+<p class="p2"  id="CAD"></p>
 <p class="p2"  id="thlp"></p>
 <p class="p2"  id="thwp"></p>
 <p class="p2"  id="thFC"></p>
-
 
 <p style="font-size:1.8vh;" > Related to scientific article: <a style="color:powderblue; font-size:1.8vh;" href="https://www.google.com"> ??? </a> </p>
 
@@ -118,7 +118,8 @@ var taw;
 var al2;
 var Ks2;
 var dep2;
-
+var cad;
+var cafd;
 
 
 // VGm und phi FUNCTIONS --------------------------------------------------------------------------
@@ -244,8 +245,6 @@ return poly_d;
 
 // END ---------------------------------------------
 
-
-
 function myFunction() {
 
 al   = parseFloat(document.getElementById("al").value);
@@ -282,11 +281,10 @@ ThFC = ThR + ( ThS - ThR) * ThFC;
 Ml = 1.69 * (Tp / 1000.0) / zsoil / (rld * 1.0e4)  ;
 Mw = Ml * Wfactor ;
 
-//           mfp0, VGa, VGn, VGl, Ks, href
+//         mfp0, VGa, VGn, VGl, Ks, href
 
 hl = MatInv(Ml, VGa, VGn, VGl, Ks, href);
 hw = MatInv(Mw, VGa, VGn, VGl, Ks, href);
-
 
 ThL = ThR + (ThS-ThR) * Math.pow((1+ Math.pow((VGa*hl),VGn)) , ((1-VGn) / VGn));
 ThW = ThR + (ThS-ThR) * Math.pow((1+ Math.pow((VGa*hw),VGn)) , ((1-VGn) / VGn));
@@ -299,9 +297,13 @@ if (ThL >= ThFC){
 raw = parseFloat(ThFC) - parseFloat(ThL);
 taw = parseFloat(ThFC) - parseFloat(ThW);
 
+cafd = raw * dep * 1000;
+cad  = taw * dep * 1000;
 
 document.getElementById("raw").innerHTML = "RAW: " + raw.toFixed(5);
+document.getElementById("CAFD").innerHTML = "RAWC: " + cafd.toFixed(5) + "  [mm]";
 document.getElementById("taw").innerHTML = "TAW: " + taw.toFixed(5);
+document.getElementById("CAD").innerHTML = "TAWC: " + cad.toFixed(5) + "  [mm]";
 document.getElementById("thlp").innerHTML = "&theta;<sub>LP</sub>: " + ThL.toFixed(5);
 document.getElementById("thwp").innerHTML = "&theta;<sub>WP</sub>: " + ThW.toFixed(5);
 document.getElementById("thFC").innerHTML = "&theta;<sub>FC</sub>: " + ThFC.toFixed(5);
