@@ -3,7 +3,7 @@
 *** Soil hydraulic parameters to calculate flux-based PAW 
 *
 ********************************************************************
-ID_soil  ThetaR   ThetraS  Alpha(1/cm)  n         l        Ks(cm/d)
+ID_soil  ThetaR   ThetaS   Alpha(1/cm)  n         l        Ks(cm/d)
 s1       0.17745  0.37536  0.01232      2.38292   0.09444  7.1568
 s2       0.18170  0.38150  0.01271      2.33136   3.33187  3.32427
 s3       0.19813  0.37863  0.01247      2.39037  -0.53095  2.92645
