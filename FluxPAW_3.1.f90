@@ -1,7 +1,7 @@
 !  Flux_PAW - Calculates Plant Available Water (PAW) based on Matric Flux Potential - 2022
 !
 !  Coded by: Quirijn de Jong van Lier and Marina L A de Melo
-!  Revised in November 2022
+!  Revised in March 2022
 !  Contact: melo.marina@usp.br; marinaluciana94@gmail.com
 !  Main reference: paper doi:10.1016/j.geoderma.2022.116253
 !
@@ -16,7 +16,7 @@
 !***************************************************************************************************************
 !*************************************************************************************************************** 
     
-    program FluxPAW_30
+    program FluxPAW_31
 
     implicit none
 
@@ -127,7 +127,7 @@
                  hfc = (ThFC**(VGn(Dat)/(1-VGn(Dat))) - 1)**(1/VGn(Dat)) / VGa(Dat)  
                  ThFC = ThR(Dat) + (ThS(Dat)-ThR(Dat)) * ThFC 
                
-                  Ml = 1.69 * (Tp(Spa)/1000.) / Zsoil(Spa) / (RLD(Spa)*1.e4)    
+                  Ml = 1.69 * (Tp(Spa)/1000.) / Zsoil(Spa) / (RLD(Spa)*1.e4)   ! ***** March 2023: units correction
                   Mw = Ml * Wfactor(Spa)    
         
                  call MatricFLuxInv(Ml, VGa(Dat), VGn(Dat), VGl(Dat), Ks(Dat), href, hl)
@@ -168,4 +168,4 @@
      
      read*
 
-    end program FluxPAW_30
+    end program FluxPAW_31
