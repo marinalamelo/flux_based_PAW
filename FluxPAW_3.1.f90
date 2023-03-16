@@ -127,7 +127,7 @@
                  hfc = (ThFC**(VGn(Dat)/(1-VGn(Dat))) - 1)**(1/VGn(Dat)) / VGa(Dat)  
                  ThFC = ThR(Dat) + (ThS(Dat)-ThR(Dat)) * ThFC 
                
-                  Ml = 1.69 * (Tp(Spa)/1000.) / Zsoil(Spa) / (RLD(Spa)*1.e4)   ! ***** March 2023: units correction
+                  Ml = 1.69 * (Tp(Spa)/10.) / Zsoil(Spa) / RLD(Spa)   ! ***** March 2023: units correction
                   Mw = Ml * Wfactor(Spa)    
         
                  call MatricFLuxInv(Ml, VGa(Dat), VGn(Dat), VGl(Dat), Ks(Dat), href, hl)
