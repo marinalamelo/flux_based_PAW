@@ -3,11 +3,11 @@ subroutine MatricFLuxInv(MFP0, VGa, VGn, VGl, Ks, href, h)
     
     implicit none
 
-	integer i 
+	integer i, Iter, MaxIter 
 	real*8 VGa, VGn, VGm, VGl, Ks, phi, L 
     real*8 TH, THref, href, MFP, FNl, h, hm, THm, Km
     real*8 dMdTH, MFP1, MFP2, MFP0
-    real*8 crit, dTH
+    real*8 crit, dTH, ThIni
     
     VGm = 1-1/VGn  !Mualem
     phi = VGm * (VGl+1)
@@ -16,18 +16,50 @@ subroutine MatricFLuxInv(MFP0, VGa, VGn, VGl, Ks, href, h)
     
     crit = 1e-6
     dTH=.00001
-
+    MaxIter = 1e4
     MFP1=1e8
     
     !First estimate of TH
-    TH=.5
+    TH=.00001
+     ThIni = 0
+     do i=-10,-1
+        TH=10.**i
+        MFP1 = VGm*(1-VGm)*Ks/2/VGa/(phi+1) * (FnL(TH, VGl, VGm,phi) - FnL(THref, VGl, VGm,phi))
+        if ((MFP1.gt.0).and.(ThIni.eq.0)) then
+           ThIni = TH
+        endif   
+     enddo
+
+     if (ThIni.eq.0) then
+      do TH=.2,.91,.1
+        MFP1 = VGm*(1-VGm)*Ks/2/VGa/(phi+1) * (FnL(TH, VGl, VGm,phi) - FnL(THref, VGl, VGm,phi))
+        if ((MFP1.gt.0).and.(ThIni.eq.0)) then
+           ThIni = TH
+        endif   
+      enddo
+     endif
+     if (ThIni.eq.0) then
+      do TH=.91,.991,.01
+        MFP1 = VGm*(1-VGm)*Ks/2/VGa/(phi+1) * (FnL(TH, VGl, VGm,phi) - FnL(THref, VGl, VGm,phi))
+        if ((MFP1.gt.0).and.(ThIni.eq.0)) then
+           ThIni = TH
+        endif   
+      enddo
+     endif
+
+    TH = ThIni    
     
-    do while ((abs((MFP1-MFP0)/MFP0)).gt.crit)
+    
+    
+    Iter = 0
+    
+    do while (((abs((MFP1-MFP0)/MFP0)).gt.crit).and.(MFP1.ne.MFP2).and.(Iter.lt.MaxIter))
+      dTH = TH/1000
       MFP1 = VGm*(1-VGm)*Ks/2/VGa/(phi+1) * (FnL(TH, VGl, VGm,phi) - FnL(THref, VGl, VGm,phi))  
       MFP2 = VGm*(1-VGm)*Ks/2/VGa/(phi+1) * (FnL(TH+dTH, VGl, VGm,phi) - FnL(THref, VGl, VGm,phi))  
       dMdTH = (MFP2-MFP1)/dTH
       TH = TH - (MFP1-MFP0)/dMdTH
-      !write (*,*) TH, MFP1
+      Iter=Iter+1
         
     enddo
     h = ((TH**(-1/VGm))-1)**(1/VGn)/VGa
@@ -59,4 +91,3 @@ subroutine MatricFLuxInv(MFP0, VGa, VGn, VGl, Ks, href, h)
     
     return
     end function
-    
